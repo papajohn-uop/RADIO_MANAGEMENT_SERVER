@@ -1,0 +1,41 @@
+version: '3.6'
+services:
+  rc_mysql_cont:
+    image: mysql:5.7.29
+    container_name: rc_mysql_cont
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: radio_config
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: root
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - rc_mysql_cont
+    environment:
+      PMA_HOST: rc_mysql_cont
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8183:80
+  radio_mgmt_server:
+    build:
+      context: ./server
+      target: radio_mgmt_server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - rc_mysql_cont
+    command: uvicorn openapi_server.main:app --host 0.0.0.0 --port 8080 --reload
+volumes:
+  dbdata:

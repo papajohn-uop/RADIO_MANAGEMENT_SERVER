@@ -8,6 +8,7 @@ ENV PATH="/venv/bin:$PATH"
 RUN pip install --upgrade pip
 
 COPY . .
+RUN pip install mysql-connector-python
 RUN pip install --no-cache-dir .
 
 

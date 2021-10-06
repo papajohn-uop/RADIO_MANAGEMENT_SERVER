@@ -23,7 +23,7 @@ from openapi_server.models.resource_create import ResourceCreate
 from openapi_server.models.resource_update import ResourceUpdate
 
 import uuid
-
+from openapi_server import db
 
 router = APIRouter()
 
@@ -47,6 +47,7 @@ async def create_resource(
 ) -> Resource:
     """This operation creates a Resource entity."""
     ...
+    #TODO: Check for each member value (if exists)
     newResource=Resource(id=str(uuid.uuid1()),href="")
     newResource.category=resource.category
     newResource.name=resource.name
@@ -56,6 +57,8 @@ async def create_resource(
         characteristic.id=str(uuid.uuid1())
     print(resource.name)
     print(newResource)
+    #TODO: Check for success/fail of command
+    db.insert_resource(newResource)
     return newResource
 
 

@@ -24,7 +24,8 @@ ENV PATH=/venv/bin:$PATH
 #RUN pytest tests
 
 
-FROM python:3.7 AS service
+FROM python:3.7 AS radio_mgmt_server
 WORKDIR /root/app/site-packages
 COPY --from=test_runner /venv /venv
 ENV PATH=/venv/bin:$PATH
+COPY ./ /server

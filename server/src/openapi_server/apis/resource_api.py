@@ -45,16 +45,7 @@ async def create_resource(
 ) -> Resource:
     """This operation creates a Resource entity."""
     ...
-    print("MO")
-    print(resource)
-    print(type(resource))
-    print("--->")
     print(resource.name)
-    print("<---")
-    print("RO")
-    print(dir(Body))
-    print(Body)
-    print("!!!")
 
 @router.delete(
     "/resource/{id}",
@@ -98,7 +89,7 @@ async def list_resource(
     offset: int = Query(None, description="Requested index for start of resources to be provided in response"),
     limit: int = Query(None, description="Requested number of resources to be provided in response"),
 ) -> List[Resource]:
-    print("ffffff")
+    print("GET")
     """This operation list or find Resource entities"""
     ...
 

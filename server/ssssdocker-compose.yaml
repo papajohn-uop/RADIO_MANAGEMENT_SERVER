@@ -2,7 +2,7 @@ version: '3.6'
 services:
   service:
     build:
-      context: .
+      context: ./server
       target: service
     ports:
       - "8080:8080"

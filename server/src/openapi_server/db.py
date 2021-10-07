@@ -1,9 +1,13 @@
+from typing import List
 import mysql.connector
 from mysql.connector import connect, Error
 import json
 
+from pydantic.typing import new_type_supertype
+
 
 from openapi_server.models.resource import Resource
+from openapi_server.models.resource import Characteristic
 
 print("FFFFFFFFFFF")
 
@@ -14,7 +18,8 @@ def connect():
     conn = None
     try:
         print('Connecting to MySQL database...')
-        conn =mysql.connector.connect(host='rc_mysql_cont',
+#        conn =mysql.connector.connect(host='rc_mysql_cont',
+        conn =mysql.connector.connect(host='127.0.0.1',
                                        database='radio_config',
                                        user='user',
                                        password='password')
@@ -40,50 +45,95 @@ def connect():
             return conn
 
 
-def getAllDevices():
-    conn=connect()
+# def getAllDevices():
+#     conn=connect()
 
-    if conn.is_connected():
-        print('Connection established.')
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM amari_radios")
-        rows = cursor.fetchall()
+#     if conn.is_connected():
+#         print('Connection established.')
+#         cursor = conn.cursor()
+#         cursor.execute("SELECT * FROM amari_radios")
+#         rows = cursor.fetchall()
 
-        print('Total Row(s):', cursor.rowcount)
-        for row in rows:
-            print(row)
-        else:
-            print('No more data.')
+#         print('Total Row(s):', cursor.rowcount)
+#         for row in rows:
+#             print(row)
+#         else:
+#             print('No more data.')
         
-        conn.close()
-        print('Connection closed.')
+#         conn.close()
+#         print('Connection closed.')
 
-        row_headers=[x[0] for x in cursor.description] #this will extract row headers
-        #rv = cur.fetchall()
-        json_data=[]
-        for result in rows:
-            json_data.append(dict(zip(row_headers,result)))
-        return json_data
-        return json.dumps(json_data)
+#         row_headers=[x[0] for x in cursor.description] #this will extract row headers
+#         #rv = cur.fetchall()
+#         json_data=[]
+#         for result in rows:
+#             json_data.append(dict(zip(row_headers,result)))
+#         return json_data
+#         return json.dumps(json_data)
 
-        return(json.dumps(rows))
-        return rows    
+#         return(json.dumps(rows))
+#         return rows    
 
 
 def insert_resource(newResource:Resource):
     print("DB")
     print(newResource)
+    print("****************************")
+    print( newResource.resource_characteristic)
+
+    print("****************************")
     conn=connect()
     #TODO: try...catch
     if conn.is_connected():
         print('Connection established.')
         cursor = conn.cursor()
-        insert_command="INSERT INTO  amari_radios (UUID, name, description, resourceVersion, resource_characteristic, placeholder) VALUES (\"{}\",\"{}\",\"sssss\",\"vvvvvv\",NULL,\"placeholder\")".format(newResource.id,newResource.name)
+       # insert_command="INSERT INTO  amari_radios (UUID, name, description, resourceVersion, resource_characteristic) VALUES (\"{}\",\"{}\",\"{}\",\"{}\",\"{}\")".format(newResource.id,newResource.name, newResource.description,newResource.resource_version, str(newResource.resource_characteristic))
+        insert_command="INSERT INTO  amari_radios (UUID, name, description, resourceVersion, resource_characteristic) VALUES (\"{}\",\"{}\",\"{}\",\"{}\",\"{}\")".format(newResource.id,newResource.name, newResource.description,newResource.resource_version, newResource.dict())
+      #  insert_command="INSERT INTO  amari_radios (UUID, name, description, resourceVersion, resource_characteristic) VALUES (\"{}\",\"{}\",\"{}\",\"{}\",\"{}\")".format(newResource.id,newResource.name, newResource.description,newResource.resource_version, newResource.dict())
+       # insert_command="INSERT INTO  amari_radios (UUID, name, description, resourceVersion, resource_characteristic,placeholder) VALUES (\"{}\",\"{}\",\"{}\",\"{}\",\"{}\",\"{}\")".format(newResource.id,newResource.name, newResource.description,newResource.resource_version, newResource.dict(),newResource.dict())
+       # insert_command="INSERT INTO  amari_radios (UUID, name, description, resourceVersion, resource_characteristic) VALUES (\"{}\",\"{}\",\"{}\",\"{}\",\"{}\")".format(newResource.id,newResource.name, newResource.description,newResource.resource_version, newResource.json())
         print(insert_command)
         cursor.execute(insert_command)
         conn.commit()
         conn.close()
 
+
+def get_resource(id=None):
+    conn=connect()
+
+    if conn.is_connected():
+        #return(query_db(conn,"SELECT * FROM devices where id=",(id),False))
+        print('Connection established.')
+        cursor = conn.cursor()
+        if id is None:
+            get_command="SELECT * FROM amari_radios"
+        else:
+            get_command="SELECT * FROM amari_radios where id="+str(id)
+        cursor.execute(get_command)
+        
+        rows = cursor.fetchall()
+
+        print('Total Row(s):', cursor.rowcount)
+        for row in rows:
+            
+
+            print(row[5])
+            newResource=Resource(id=row[0],href="")
+
+            mmm=str(row[5]).replace("\'","\"").replace("None","\"None\"")
+           
+            res_as_jsn=json.loads(mmm)
+            newResource.category=res_as_jsn["category"]
+            newResource.name=res_as_jsn["name"]
+            newResource.description=res_as_jsn["description"]
+            newResource.resource_version=res_as_jsn["resource_version"]
+
+            newResource.resource_characteristic=res_as_jsn["resource_characteristic"]
+            return newResource
+        else:
+            print('No more data.')
+        
+    
 # def getDeviceWithID(id):
 #     conn=connect()
 

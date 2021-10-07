@@ -1,0 +1,85 @@
+{
+  "category": "gNodeB",
+  "description": "Big Black Box",
+  "name": "AmarisoftClassic_1",
+  "resource_version": "MAr2021",
+  "resource_characteristic": [
+    {
+      "id": "string",
+      "name": "IP",
+      "value_type": "string",
+      "value": {"value":"1.2.3.4"}
+    },
+	{
+      "id": "string",
+      "name": "location",
+      "value_type": "array",
+      "value": {"value":[123,456]}
+    },
+	{
+      "id": "string",
+      "name": "action",
+      "value_type": "string",
+      "value": {"value":"start/stop"}
+    },
+	{
+      "id": "string",
+      "name": "action_parameters",
+      "value_type": "object",
+      "value": {"value":{"param1":"value1","param2":"value2"}}
+    }
+  ]
+}
+
+
+
+
+
+
+{
+  "category": "gNodeB",
+  "description": "Big Black Box",
+  "name": "AmarisoftClassic_1",
+  "resource_version": "MAr2021"
+////   "operational_state": "enable",
+  "resource_characteristic": [
+    {
+      "id": "string",
+      "name": "IP",
+      "value_type": "string",
+      "value": {"value":"1.2.3.4"}
+    }
+  ],
+//////////  "resource_status": "available"
+}
+
+
+{
+  "category": "string",
+  "description": "string",
+  "name": "string",
+  "resource_version": "string",
+  "operational_state": {},
+  "resource_characteristic": [
+    {
+      "id": "string",
+      "name": "string",
+      "value_type": "string",
+      "characteristic_relationship": [
+        {
+          "id": "string",
+          "href": "string",
+          "relationship_type": "string",
+          "base_type": "string",
+          "schema_location": "string",
+          "type": "string"
+        }
+      ],
+      "value": {},
+      "base_type": "string",
+      "schema_location": "string",
+      "type": "string"
+    }
+  ],
+  "resource_status": {}
+}

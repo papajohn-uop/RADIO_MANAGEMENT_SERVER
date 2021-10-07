@@ -46,19 +46,41 @@ async def create_resource(
     resource: ResourceCreate = Body(None, description="The Resource to be created"),
 ) -> Resource:
     """This operation creates a Resource entity."""
+    
+    
+    
+    
     ...
     #TODO: Check for each member value (if exists)
     newResource=Resource(id=str(uuid.uuid1()),href="")
     newResource.category=resource.category
     newResource.name=resource.name
     newResource.description=resource.description
+    # print("**************************************************")
+    # newResource.resource_characteristic=list()
+    # for characteristic in resource.resource_characteristic:
+    #     print(characteristic.json())
+    #     newResource.resource_characteristic.append(characteristic.json())
+    # print("**************************************************")
+    # print(newResource.resource_characteristic)
+    # print("**************************************************")
+    
     newResource.resource_characteristic=resource.resource_characteristic
     for characteristic in newResource.resource_characteristic:
         characteristic.id=str(uuid.uuid1())
-    print(resource.name)
+        print(characteristic)
     print(newResource)
     #TODO: Check for success/fail of command
     db.insert_resource(newResource)
+    print("**************************")
+    print(resource)
+    print("**************************")
+    print(newResource.dict())
+    print(type(resource))
+    print(type(resource.resource_characteristic))
+    print(resource)
+    print("**************************")
+    print("**************************")
     return newResource
 
 
@@ -106,6 +128,13 @@ async def list_resource(
 ) -> List[Resource]:
     print("GET")
     """This operation list or find Resource entities"""
+    res_list=list()
+    tmp_res=db.get_resource()
+    print("GET_AFTER_DB")
+    print(tmp_res)
+    res_list.append(tmp_res)
+    print(res_list)
+    return res_list
     ...
 
 
@@ -153,3 +182,7 @@ async def retrieve_resource(
 ) -> Resource:
     """This operation retrieves a Resource entity. Attribute selection is enabled for all first level attributes."""
     ...
+    #Atm for easier debug we use the ID field of the DB
+    #When moving on production we should switch to UUID.
+    #Nothing will change here, the change is in the db module
+    return(db.get_resource(id))

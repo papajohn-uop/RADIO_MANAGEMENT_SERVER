@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from typing import Dict, List  # noqa: F401
+from typing import Dict, List
 
 from fastapi import (  # noqa: F401
     APIRouter,
@@ -14,6 +14,8 @@ from fastapi import (  # noqa: F401
     Response,
     Security,
     status,
+    HTTPException,
+    
 )
 
 from openapi_server.models.extra_models import TokenModel  # noqa: F401
@@ -23,7 +25,10 @@ from openapi_server.models.resource_create import ResourceCreate
 from openapi_server.models.resource_update import ResourceUpdate
 
 import uuid
+import requests
 from openapi_server import db
+from fastapi import BackgroundTasks
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -103,8 +108,10 @@ async def delete_resource(
     id: str = Path(None, description="Identifier of the Resource"),
 ) -> None:
     """This operation deletes a Resource entity."""
+# INS_TZANIS
     ...
-
+    db.delete_resource(id)
+# END_INS_TZANIS
 
 @router.get(
     "/resource",
@@ -159,6 +166,53 @@ async def patch_resource(
 ) -> Resource:
     """This operation updates partially a Resource entity."""
     ...
+    print("****************************")
+    # print(resource)
+    print("****************************")    
+    #check if id exists
+    # if not return error
+
+    # possible errors to handle
+        # - id not found
+        # - Name already exists
+        # - DB error
+    patch_resource = db.patch_resource(id, resource)
+    if patch_resource[0] == False:
+        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": patch_resource[1], "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+
+    print("Resource successfully updated")
+    print("Check if action included")
+    
+    action_included = 0
+    for characteristic in resource.resource_characteristic:
+        if characteristic.name == "action":
+            print("ACTION field found")
+            action_included +=1 
+        if characteristic.name == "action_parameters":
+            action_included +=1
+
+    #exactly 1 action, action_parameter pair is allowed
+    if action_included ==2:            
+    
+        NewResource:Resource = db.get_resource(id)[0]
+        print("****NewResource**********")
+        print(NewResource)
+
+        x = requests.patch("http://127.0.0.1:8085/resource/1", json=dict(NewResource))
+        print(x.status_code)
+        print("request complete")
+    # x = requests.get("http://www.google.com")
+    # print(x.status_code)
+    # print(r.content)
+    print("ΑFTER DB PATCH forward")
+    # newError=Error(code=404,reason="blabla")
+    # detail=json.dumps(newError)
+    # print(detail)
+    # print(newError)
+    # raise HTTPException(status_code=404, detail=json.dumps(newError))
+    # return newError
+    # return NewResource
+    # return JSONResponse(status_code=500, content={"code": "500", "reason":"id not found", "message": "", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
 
 
 @router.get(

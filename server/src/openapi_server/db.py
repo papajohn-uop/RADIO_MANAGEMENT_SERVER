@@ -86,6 +86,8 @@ def get_resource(id=None):
 
             newResource.resource_characteristic=res_as_jsn["resource_characteristic"]
             return_res_list.append(newResource)
+            print("New resource")
+            print(newResource)
 #            return newResource
         else:
             print('No more data.')
@@ -115,7 +117,7 @@ def delete_resource(id=None):
 
 # UPDATE amari_radios SET name = 'AMARI' WHERE id = 32;
 
-def patch_resource(id:str, resource:Resource):
+def patch_resource(id:str, resource:Resource, storedResource:Resource):
     print("****************************")
     print("patch resource with id "+str(id))
     print("****************************")
@@ -123,46 +125,72 @@ def patch_resource(id:str, resource:Resource):
     return_res_list=list()
     success = False
     return_message = ""
-
+    
+    UpdatedRecord = UpdateRecord (resource, storedResource)
+    
     conn=connect()
     #TODO: try...catch
     if conn.is_connected():
         print('Connection established.')
         cursor = conn.cursor()
-        search_command="SELECT COUNT(*) FROM amari_radios WHERE id = \"{}\"".format(id)
-        print(search_command)
-        cursor.execute(search_command)
-        rows = cursor.fetchone()
-        print(rows[0])
-        print("***********END*************")
+        patch_command="UPDATE amari_radios SET name = \"{}\", description = \"{}\", resourceVersion = \"{}\", resource_characteristic = \"{}\" WHERE id = \"{}\";".format(resource.name, resource.description, resource.resource_version, resource.dict(), id)
+        
+        try:
 
-        if rows[0] == 1:
-            print("Record found. Update record")
-
-            patch_command="UPDATE amari_radios SET name = \"{}\", description = \"{}\", resourceVersion = \"{}\", resource_characteristic = \"{}\" WHERE id = \"{}\";".format(resource.name, resource.description, resource.resource_version, resource.dict(), id)
-            try:
-
-                cursor.execute(patch_command)
-                success = True
-                return_message = "Record Successfully Updated"
-            except mysql.connector.Error as err:
-                print(err)
-                print("Error Code:", err.errno)
-                print("Message", err.msg)
-                success = False
-                return_message = err.msg
-
-        else:
-            print("Record not found. Use POST to insert new record")
-            return_message = "Record not found. Use POST to insert new record"
-
+            cursor.execute(patch_command)
+            success = True
+            return_message = "Record Successfully Updated"
+        except mysql.connector.Error as err:
+            print(err)
+            print("Error Code:", err.errno)
+            print("Message", err.msg)
+            success = False
+            return_message = err.msg
 
 
         conn.commit()
         conn.close()
-        return_res_list.append(success)
-        return_res_list.append(return_message)
-        return return_res_list
-        
+    return_res_list.append(success)
+    return_res_list.append(return_message)
+    return return_res_list
+
+
+
+def UpdateRecord(NewResource:Resource, StoredResource:Resource):
+    # print("*******New Resource*******")
+    # print(NewResource)
+    # print("*******Stored Resource*******")
+    # print(StoredResource)
+    # print("*******New Resource name*******")
+    # print(NewResource.name)
+    # print("*******Stored Resource name*******")
+    # print(StoredResource.name)
+
+    
+    #TODO blows up whne stored value is 'None'
+    if NewResource.name == None: NewResource.name = StoredResource.name
+    if NewResource.description == None : NewResource.description = StoredResource.description
+    if NewResource.category == None : NewResource.category = StoredResource.category
+    if NewResource.resource_version == None: NewResource.resource_version = StoredResource.resource_version
+
+
+    print("Update resource_characteristic")
+    for stored_char in StoredResource.resource_characteristic:
+        print("stored_char.name is: " + stored_char["name"])
+        stored_char_found = False
+        for new_char in NewResource.resource_characteristic:
+            print("new_char.name is: " + new_char.name)
+            if new_char.name == stored_char["name"]:
+                print("characteristic found: " + new_char.name)
+                stored_char_found = True
+        if stored_char_found == False:
+            print("Not found")
+            char = Characteristic (name = stored_char["name"], value = stored_char["value"])
+            char.id = stored_char["id"]
+            # char.name = stored_char["name"]
+            # char.value = stored_char["value"]
+            char.value_type = stored_char["value_type"]
+            NewResource.resource_characteristic.append(char)    
+
 # END_INS_TZANIS   
 

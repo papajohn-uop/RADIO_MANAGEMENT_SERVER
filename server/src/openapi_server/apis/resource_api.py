@@ -61,6 +61,7 @@ async def create_resource(
     newResource.category=resource.category
     newResource.name=resource.name
     newResource.description=resource.description
+    newResource.resource_version=resource.resource_version
     # print("**************************************************")
     # newResource.resource_characteristic=list()
     # for characteristic in resource.resource_characteristic:
@@ -176,31 +177,50 @@ async def patch_resource(
         # - id not found
         # - Name already exists
         # - DB error
-    patch_resource = db.patch_resource(id, resource)
-    if patch_resource[0] == False:
-        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": patch_resource[1], "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
 
-    print("Resource successfully updated")
-    print("Check if action included")
+    stored_resource_list = db.get_resource(id)
+    print("Check if resource with this id is storded in the database")
+    if stored_resource_list:
+        print("record with id is stored in the database")
     
-    action_included = 0
-    for characteristic in resource.resource_characteristic:
-        if characteristic.name == "action":
-            print("ACTION field found")
-            action_included +=1 
-        if characteristic.name == "action_parameters":
-            action_included +=1
+        patch_resource = db.patch_resource(id, resource, stored_resource_list[0])
+        if patch_resource[0] == False:
+            return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": patch_resource[1], "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
 
-    #exactly 1 action, action_parameter pair is allowed
-    if action_included ==2:            
-    
+        print("Resource successfully updated")
+        print("Check if action included")
+        IP =""
+        action_included = 0
+        for characteristic in resource.resource_characteristic:
+            if characteristic.name == "action":
+                print("ACTION field found")
+                action_included +=1 
+            if characteristic.name == "action_parameters":
+                action_included +=1
+            if characteristic.name == "IP":
+                action_included +=1
+                IP = characteristic.value["value"]
+
+
         NewResource:Resource = db.get_resource(id)[0]
-        print("****NewResource**********")
-        print(NewResource)
+        #exactly 1 action, action_parameter pair is allowed, and IP is mandatory
+        if action_included ==0:
+            print("no action included")
+        elif action_included ==3:    
 
-        x = requests.patch("http://127.0.0.1:8085/resource/1", json=dict(NewResource))
-        print(x.status_code)
-        print("request complete")
+            # Everything OK. Perform PATCH request
+            x = requests.patch("http://" + IP +":8085/resource/1", json=dict(NewResource))
+            print(x.status_code)
+            print("request complete")
+        else:
+            print("action, action_parameter or IP not specified")
+            return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": "action, action_parameter or IP not specified", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+    
+    else:
+        print("Record not found. Use POST to insert new record")
+        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+
+    
     # x = requests.get("http://www.google.com")
     # print(x.status_code)
     # print(r.content)
@@ -213,7 +233,7 @@ async def patch_resource(
     # return newError
     # return NewResource
     # return JSONResponse(status_code=500, content={"code": "500", "reason":"id not found", "message": "", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
-
+    return NewResource
 
 @router.get(
     "/resource/{id}",

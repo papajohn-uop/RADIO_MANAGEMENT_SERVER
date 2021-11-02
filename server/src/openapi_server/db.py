@@ -41,6 +41,11 @@ def insert_resource(newResource:Resource):
     print("****************************")
     print( newResource.resource_characteristic)
 
+
+    ret_list = list() #[success = True, UpdatedRecordList] / [success = False, error message]
+    success = True
+    message = ""
+
     print("****************************")
     conn=connect()
     #TODO: try...catch
@@ -49,12 +54,28 @@ def insert_resource(newResource:Resource):
         cursor = conn.cursor()
         insert_command="INSERT INTO  amari_radios (UUID, name, description, resourceVersion, resource_characteristic) VALUES (\"{}\",\"{}\",\"{}\",\"{}\",\"{}\")".format(newResource.id,newResource.name, newResource.description,newResource.resource_version, newResource.dict())
         print(insert_command)
-        cursor.execute(insert_command)
-        conn.commit()
-        conn.close()
+        
+        try:
+            cursor.execute(insert_command)
+            conn.commit()
+            conn.close()
+        except mysql.connector.Error as err:
+            print(err)
+            print("Error Code:", err.errno)
+            print("Message", err.msg)
+            success = False
+            message = "Error Code: " + str(err.errno) + " | Message: " + err.msg
+        
+        ret_list.append(success)
+        ret_list.append(message)
+        return ret_list
 
 
 def get_resource(id=None):
+    ret_list = list() #[success = True, UpdatedRecordList] / [success = False, error message]
+    resources_list=list()
+    success = True
+    
     conn=connect()
 
     if conn.is_connected():
@@ -64,34 +85,50 @@ def get_resource(id=None):
             get_command="SELECT * FROM amari_radios"
         else:
             get_command="SELECT * FROM amari_radios where id="+str(id)
-        cursor.execute(get_command)
-        
-        rows = cursor.fetchall()
-        return_res_list=list()
-
-        print('Total Row(s):', cursor.rowcount)
-        for row in rows:
+        try:
+            cursor.execute(get_command)  
+            rows = cursor.fetchall()
             
 
-            print(row[5])
-            newResource=Resource(id=row[0],href="")
+            print('Total Row(s):', cursor.rowcount)
+            for row in rows:
+                
+                print("row[5]")
+                print(row[5])
+                newResource=Resource(id=row[0],href="")
 
-            mmm=str(row[5]).replace("\'","\"").replace("None","\"None\"")
+
+                mmm=str(row[5]).replace("\'","\"").replace("None","\"None\"")
+                # mmm=str(row[5]).replace("\'None\'","None").replace("\'","\"").replace("None","\"None\"")
+                
+                print("mmm")
+                print(mmm)
+            
+                res_as_jsn=json.loads(mmm)
+                newResource.category=res_as_jsn["category"]
+                newResource.name=res_as_jsn["name"]
+                newResource.description=res_as_jsn["description"]
+                newResource.resource_version=res_as_jsn["resource_version"]
+
+                newResource.resource_characteristic=res_as_jsn["resource_characteristic"]
+                resources_list.append(newResource)
+                print("New resource")
+                print(newResource)
+            else:
+                print('No more data.')
+
+        except mysql.connector.Error as err:
+            print(err)
+            print("Error Code:", err.errno)
+            print("Message", err.msg)
+            success = False
+            resources_list = "Error Code: " + str(err.errno) + " | Message: " + err.msg
+
+        ret_list.append(success)
+        ret_list.append(resources_list)
+        return ret_list
+       
            
-            res_as_jsn=json.loads(mmm)
-            newResource.category=res_as_jsn["category"]
-            newResource.name=res_as_jsn["name"]
-            newResource.description=res_as_jsn["description"]
-            newResource.resource_version=res_as_jsn["resource_version"]
-
-            newResource.resource_characteristic=res_as_jsn["resource_characteristic"]
-            return_res_list.append(newResource)
-            print("New resource")
-            print(newResource)
-#            return newResource
-        else:
-            print('No more data.')
-        return return_res_list
 
 
 # INS_TZANIS
@@ -122,9 +159,9 @@ def patch_resource(id:str, resource:Resource, storedResource:Resource):
     print("patch resource with id "+str(id))
     print("****************************")
 
-    return_res_list=list()
+    return_res_list=list() #[success = True, UpdatedRecord] / [success = False, error message]
     success = False
-    return_message = ""
+    return_result = ""
     
     UpdatedRecord = UpdateRecord (resource, storedResource)
     
@@ -133,45 +170,71 @@ def patch_resource(id:str, resource:Resource, storedResource:Resource):
     if conn.is_connected():
         print('Connection established.')
         cursor = conn.cursor()
+        print("resourceVersion")
+        print(resource.resource_version)
+        print(type(resource.resource_version))
         patch_command="UPDATE amari_radios SET name = \"{}\", description = \"{}\", resourceVersion = \"{}\", resource_characteristic = \"{}\" WHERE id = \"{}\";".format(resource.name, resource.description, resource.resource_version, resource.dict(), id)
-        
+        # patch_command="UPDATE amari_radios SET name = \"{}\", description = \"{}\", resourceVersion = \"{}\", resource_characteristic = \"{}\" WHERE id = \"{}\";".format(resource.name, resource.description, resource.resource_version, resource.dict(), id)
+        print(patch_command)
         try:
 
             cursor.execute(patch_command)
             success = True
-            return_message = "Record Successfully Updated"
+            return_result = UpdatedRecord
         except mysql.connector.Error as err:
             print(err)
             print("Error Code:", err.errno)
             print("Message", err.msg)
             success = False
-            return_message = err.msg
+            return_result = err.msg
 
 
         conn.commit()
         conn.close()
+
+    print("DB patch complete")
     return_res_list.append(success)
-    return_res_list.append(return_message)
+    return_res_list.append(return_result)
     return return_res_list
 
 
 
 def UpdateRecord(NewResource:Resource, StoredResource:Resource):
-    # print("*******New Resource*******")
-    # print(NewResource)
-    # print("*******Stored Resource*******")
-    # print(StoredResource)
+    print("*******New Resource*******")
+    print(NewResource)
+    print("*******Stored Resource*******")
+    print(StoredResource)
     # print("*******New Resource name*******")
     # print(NewResource.name)
-    # print("*******Stored Resource name*******")
-    # print(StoredResource.name)
+    print("*******Stored Resource name*******")
+    print(StoredResource.name)
+    print(type(StoredResource.name))
 
     
     #TODO blows up whne stored value is 'None'
-    if NewResource.name == None: NewResource.name = StoredResource.name
-    if NewResource.description == None : NewResource.description = StoredResource.description
-    if NewResource.category == None : NewResource.category = StoredResource.category
-    if NewResource.resource_version == None: NewResource.resource_version = StoredResource.resource_version
+    # if NewResource.name == None: 
+    #     print("*******New Resource name is  None*******")
+    #     if StoredResource.name != None: 
+    #         print("*******Stored Resource name is not None*******")
+    #         NewResource.name = StoredResource.name
+
+    if NewResource.name == None:
+        if StoredResource.name != "None": NewResource.name = StoredResource.name      
+        else: NewResource.name = None
+
+    
+    if NewResource.description == None:
+        if StoredResource.description != "None": NewResource.description = StoredResource.description
+        else: NewResource.description = None
+    
+    if NewResource.category == None:
+        if StoredResource.category != "None": NewResource.category = StoredResource.category
+        else: NewResource.category = None
+
+    if NewResource.resource_version == None:
+        if StoredResource.resource_version != "None": NewResource.resource_version = StoredResource.resource_version        
+        else: NewResource.resource_version = None
+    
 
 
     print("Update resource_characteristic")
@@ -190,7 +253,12 @@ def UpdateRecord(NewResource:Resource, StoredResource:Resource):
             # char.name = stored_char["name"]
             # char.value = stored_char["value"]
             char.value_type = stored_char["value_type"]
-            NewResource.resource_characteristic.append(char)    
+            NewResource.resource_characteristic.append(char)   
+
+    print("Update Function NewResource")
+    print(NewResource)
+    
+    return NewResource
 
 # END_INS_TZANIS   
 

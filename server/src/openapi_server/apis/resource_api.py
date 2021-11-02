@@ -77,7 +77,7 @@ async def create_resource(
         print(characteristic)
     print(newResource)
     #TODO: Check for success/fail of command
-    db.insert_resource(newResource)
+    insert_result = db.insert_resource(newResource)
     print("**************************")
     print(resource)
     print("**************************")
@@ -87,7 +87,11 @@ async def create_resource(
     print(resource)
     print("**************************")
     print("**************************")
-    return newResource
+
+    if insert_result[0] == True: #success
+        return newResource
+    else:
+        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": insert_result[1], "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
 
 
 @router.delete(
@@ -138,11 +142,15 @@ async def list_resource(
     """This operation list or find Resource entities"""
     res_list=list()
     tmp_res=db.get_resource()
-    print("GET_AFTER_DB")
-    print(tmp_res)
-    res_list.append(tmp_res)
-    print(res_list)
-    return res_list
+
+    success = tmp_res[0]
+    
+
+    if success == False:
+        message = tmp_res[1]
+        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": message, "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+    
+    return tmp_res[1]
     ...
 
 
@@ -167,74 +175,65 @@ async def patch_resource(
 ) -> Resource:
     """This operation updates partially a Resource entity."""
     ...
-    print("****************************")
-    # print(resource)
-    print("****************************")    
-    #check if id exists
-    # if not return error
+    print("This operation updates partially a Resource entity and forwards PATCH actions")
 
-    # possible errors to handle
-        # - id not found
-        # - Name already exists
-        # - DB error
 
-    stored_resource_list = db.get_resource(id)
+    print("Retrieve stored resource from the DB")
+    StoredResourceList = db.get_resource(id)
+    
     print("Check if resource with this id is storded in the database")
-    if stored_resource_list:
-        print("record with id is stored in the database")
-    
-        patch_resource = db.patch_resource(id, resource, stored_resource_list[0])
-        if patch_resource[0] == False:
-            return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": patch_resource[1], "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
-
-        print("Resource successfully updated")
-        print("Check if action included")
-        IP =""
-        action_included = 0
-        for characteristic in resource.resource_characteristic:
-            if characteristic.name == "action":
-                print("ACTION field found")
-                action_included +=1 
-            if characteristic.name == "action_parameters":
-                action_included +=1
-            if characteristic.name == "IP":
-                action_included +=1
-                IP = characteristic.value["value"]
-
-
-        NewResource:Resource = db.get_resource(id)[0]
-        #exactly 1 action, action_parameter pair is allowed, and IP is mandatory
-        if action_included ==0:
-            print("no action included")
-        elif action_included ==3:    
-
-            # Everything OK. Perform PATCH request
-            x = requests.patch("http://" + IP +":8085/resource/1", json=dict(NewResource))
-            print(x.status_code)
-            print("request complete")
-        else:
-            print("action, action_parameter or IP not specified")
-            return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": "action, action_parameter or IP not specified", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
-    
-    else:
+    if StoredResourceList[0] == False:
+        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": StoredResourceList[1], "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+    if not StoredResourceList[1]:
         print("Record not found. Use POST to insert new record")
-        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+        return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+        
+        
+    print("record with id is stored in the database. Perform PATCH action")
+    # print(StoredResourceList[1][0])
+
+    patch_resource = db.patch_resource(id, resource, StoredResourceList[1][0])
+    if patch_resource[0] == False:
+        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": patch_resource[1], "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+    else:       
+        UpdatedResource:Resource= db.get_resource(id)[1][0]
+        print("Resource successfully updated in the DB")
+        
+    # print(UpdatedResource)
+
+    print("Check if action included")
+    IP =""
+    action_included = False
+    for characteristic in UpdatedResource.resource_characteristic:
+        if characteristic["name"] == "action":
+            print("ACTION field found")
+            action_included = True
+        if characteristic["name"] == "IP":
+            IP = characteristic["value"]["value"]
+            print(IP)
+
+
+    # NewResource:ResourceResource= db.get_resource(id)[0]
+    if not action_included:
+        print("No action included. PATCH action completed")
+        return UpdatedResource
+      
+
+    # ACTION found. Perform PATCH request
+    print("Perform PATCH request")
+    
+    try:
+        x = requests.patch("http://" + IP +"/resource/1", json=dict(UpdatedResource), timeout=2)
+        print(x.status_code)
+        print("PATCH request complete")
+    except requests.exceptions.RequestException as e:
+        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": "Connection Timeout", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
 
     
-    # x = requests.get("http://www.google.com")
-    # print(x.status_code)
-    # print(r.content)
-    print("ΑFTER DB PATCH forward")
-    # newError=Error(code=404,reason="blabla")
-    # detail=json.dumps(newError)
-    # print(detail)
-    # print(newError)
-    # raise HTTPException(status_code=404, detail=json.dumps(newError))
-    # return newError
-    # return NewResource
-    # return JSONResponse(status_code=500, content={"code": "500", "reason":"id not found", "message": "", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
-    return NewResource
+    print(UpdatedResource)
+    return UpdatedResource
 
+    
 @router.get(
     "/resource/{id}",
     responses={
@@ -259,4 +258,11 @@ async def retrieve_resource(
     #Atm for easier debug we use the ID field of the DB
     #When moving on production we should switch to UUID.
     #Nothing will change here, the change is in the db module
-    return(db.get_resource(id))
+    tmp_res=db.get_resource(id)
+
+    success = tmp_res[0]  
+
+    if success == False:
+        message = tmp_res[1]
+        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": message, "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+    return tmp_res[1][0]

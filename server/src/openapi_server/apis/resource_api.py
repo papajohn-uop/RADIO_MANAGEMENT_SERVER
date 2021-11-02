@@ -265,4 +265,9 @@ async def retrieve_resource(
     if success == False:
         message = tmp_res[1]
         return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": message, "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+
+    if not tmp_res[1]:
+        print("Record not found. Use POST to insert new record")
+        return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+
     return tmp_res[1][0]

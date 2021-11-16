@@ -18,8 +18,8 @@ def connect():
     conn = None
     try:
         print('Connecting to MySQL database...')
-        #conn =mysql.connector.connect(host='rc_mysql_cont',
-        conn =mysql.connector.connect(host='127.0.0.1',
+        conn =mysql.connector.connect(host='rc_mysql_cont',
+        #conn =mysql.connector.connect(host='127.0.0.1',
                                        database='radio_config',
                                        user='user',
                                        password='password')
@@ -95,7 +95,7 @@ def get_resource(id=None):
                 
                 print("row[5]")
                 print(row[5])
-                newResource=Resource(id=row[0],href="")
+                newResource=Resource(id=row[0],href=row[1])
 
 
                 mmm=str(row[5]).replace("\'","\"").replace("None","\"None\"")

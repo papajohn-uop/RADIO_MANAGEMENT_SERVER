@@ -84,8 +84,10 @@ def get_resource(id=None):
         if id is None:
             get_command="SELECT * FROM amari_radios"
         else:
-            get_command="SELECT * FROM amari_radios where id="+str(id)
+            #https://stackoverflow.com/questions/51876317/mysql-query-compare-string-with-int-value
+            get_command="SELECT * FROM amari_radios where CAST(id as char(255))='"+str(id) + "' or UUID='"+str(id) +"'"
         try:
+            print(get_command)
             cursor.execute(get_command)  
             rows = cursor.fetchall()
             
@@ -142,7 +144,7 @@ def delete_resource(id=None):
         print('Connection established.')
         cursor = conn.cursor()
 
-        delete_command="DELETE FROM amari_radios where id="+str(id)
+        delete_command="DELETE FROM amari_radios where CAST(id as char(255))='"+str(id) + "' or UUID='"+str(id) +"'"
 
         print(delete_command)
         cursor.execute(delete_command)

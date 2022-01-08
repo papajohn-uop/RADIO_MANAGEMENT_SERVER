@@ -27,6 +27,9 @@ from openapi_server.models.resource_update import ResourceUpdate
 import uuid
 import requests
 from openapi_server import db
+from openapi_server import mongo_db
+
+
 from fastapi import BackgroundTasks
 from fastapi.responses import JSONResponse
 
@@ -51,47 +54,36 @@ async def create_resource(
     resource: ResourceCreate = Body(None, description="The Resource to be created"),
 ) -> Resource:
     """This operation creates a Resource entity."""
-    
-    
-    
-    
     ...
     #TODO: Check for each member value (if exists)
-    newResource=Resource(id=str(uuid.uuid1()),href="")
+    #newResource=Resource(id=str(uuid.uuid1()),href="")
+    newResource=Resource(id=str(resource.name),href="")
     newResource.category=resource.category
     newResource.name=resource.name
     newResource.description=resource.description
     newResource.resource_version=resource.resource_version
-    # print("**************************************************")
-    # newResource.resource_characteristic=list()
-    # for characteristic in resource.resource_characteristic:
-    #     print(characteristic.json())
-    #     newResource.resource_characteristic.append(characteristic.json())
-    # print("**************************************************")
-    # print(newResource.resource_characteristic)
-    # print("**************************************************")
-    
+        
     newResource.resource_characteristic=resource.resource_characteristic
     for characteristic in newResource.resource_characteristic:
         characteristic.id=str(uuid.uuid1())
         print(characteristic)
     print(newResource)
-    #TODO: Check for success/fail of command
-    insert_result = db.insert_resource(newResource)
-    print("**************************")
-    print(resource)
-    print("**************************")
-    print(newResource.dict())
-    print(type(resource))
-    print(type(resource.resource_characteristic))
-    print(resource)
-    print("**************************")
-    print("**************************")
-
+    print("Lets start mongo")
+    #If all Ok insert resource
+    insert_result=mongo_db.insert_resource(newResource)
+    #insert_result = db.insert_resource(newResource)
+    
     if insert_result[0] == True: #success
-        return newResource
+ #       return newResource
+        return JSONResponse(status_code=201, content=newResource.dict())
     else:
-        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": insert_result[1], "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+        #TODO: At the moment all fialures are retunre as 500
+        #This is propably wrong, Need to check tha failure and add the 
+        # correct error codes depending on the situation
+        error_resp=Error(code= insert_result[2], reason=insert_result[3])
+        return JSONResponse(status_code=insert_result[2], content=error_resp.dict())
+      #  return JSONResponse(status_code=insert_result[2], content={"code": insert_result[2], "reason":insert_result[3], "message": "", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+     #   return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": insert_result[1], "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
 
 
 @router.delete(

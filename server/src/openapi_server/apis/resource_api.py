@@ -35,6 +35,11 @@ from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
+from openapi_server.models.resource_administrative_state_type import ResourceAdministrativeStateTypeEnum
+from openapi_server.models.resource_operational_state_type import ResourceOperationalStateTypeEnum
+from openapi_server.models.resource_status_type import ResourceStatusTypeEnum
+from openapi_server.models.resource_usage_state_type import ResourceUsageStateTypeEnum
+
 
 @router.post(
     "/resource",
@@ -62,7 +67,12 @@ async def create_resource(
     newResource.name=resource.name
     newResource.description=resource.description
     newResource.resource_version=resource.resource_version
-        
+    #TODO: if the key is erroneous in agetn_Cfg (i.e. state=unlked) there is an excpetion. Must fix it
+    newResource.administrative_state=ResourceAdministrativeStateTypeEnum[resource.administrative_state.value].value#resource.administrative_state
+    newResource.operational_state=ResourceOperationalStateTypeEnum[resource.operational_state.value].value#resource.administrative_state
+    newResource.resource_status=ResourceStatusTypeEnum[resource.resource_status.value].value#resource.administrative_state
+    newResource.usage_state=ResourceUsageStateTypeEnum[resource.usage_state.value].value#resource.administrative_state
+    
     newResource.resource_characteristic=resource.resource_characteristic
     for characteristic in newResource.resource_characteristic:
         characteristic.id=str(uuid.uuid1())

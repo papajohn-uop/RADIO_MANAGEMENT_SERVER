@@ -38,6 +38,50 @@ def connect():
     return None
   
 
+def get_resource(id=None):
+    print("MONGO_DB_GET")
+    TARGET_DB="RMS"
+    TARGET_COLLECTION="gNodeBs"
+    ret_list = list() #[success = True, UpdatedRecordList] / [success = False, error message]
+    resources_list=list()
+    success = True
+
+    print("****************************")
+    conn=connect()
+
+    if TARGET_DB in conn.list_database_names():
+        print("RMS DB is OK!")
+    else:
+        print("RMS DB is Missing!")
+        success = False
+        message = "Error DBM."
+    print(conn[TARGET_DB].list_collection_names())
+    if TARGET_COLLECTION in conn[TARGET_DB].list_collection_names():
+        print("COLLECTION in DB is OK!")
+    else:
+        print("COLLECTION in DB is Missing!")
+        success = False
+        message = "Error CDBM."
+
+    target_db=conn[TARGET_DB]
+    target_collection=target_db[TARGET_COLLECTION]
+    resourcesCursor=None
+    #TODO: add try/catch
+    if id is None:
+        resourcesCursor = target_collection.find()
+    else:
+        resourcesCursor = target_collection.find_one({"_id":id})
+    print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+    # for document in resourcesCursor:
+    #     print(document)
+    # print(resourcesCursor)
+    # print(type(resourcesCursor))
+
+    ret_list.append(success)
+    ret_list.append(resourcesCursor)
+    return ret_list
+    
+
 
 
 def insert_resource(newResource:Resource):

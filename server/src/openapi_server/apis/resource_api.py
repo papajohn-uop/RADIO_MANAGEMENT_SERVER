@@ -143,6 +143,11 @@ async def list_resource(
     print("GET")
     """This operation list or find Resource entities"""
     res_list=list()
+
+    print("Retrieve stored resources from the MONGO DB")
+    StoredResourceList = mongo_db.get_resource()
+    return
+
     tmp_res=db.get_resource()
 
     success = tmp_res[0]
@@ -179,7 +184,21 @@ async def patch_resource(
     ...
     print("This operation updates partially a Resource entity and forwards PATCH actions")
 
+    print("Retrieve stored resource from the MONGO DB")
+    StoredResourceList = mongo_db.get_resource(id)
 
+    success = StoredResourceList[0]  
+
+    if success == False:
+        message = StoredResourceList[1]
+        return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": message, "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+
+    if not StoredResourceList[1]:
+        print("Record not found. Use POST to insert new record")
+        return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+
+    return StoredResourceList[1]
+    return
     print("Retrieve stored resource from the DB")
     StoredResourceList = db.get_resource(id)
     
@@ -257,19 +276,21 @@ async def retrieve_resource(
 ) -> Resource:
     """This operation retrieves a Resource entity. Attribute selection is enabled for all first level attributes."""
     ...
-    #Atm for easier debug we use the ID field of the DB
-    #When moving on production we should switch to UUID.
-    #Nothing will change here, the change is in the db module
-    tmp_res=db.get_resource(id)
+    print("Retrieve stored resource from the MONGO DB")
+    StoredResourceList = mongo_db.get_resource(id)
+    print(StoredResourceList[0])
+    print(StoredResourceList[1])
+    
 
-    success = tmp_res[0]  
+
+    success = StoredResourceList[0]  
 
     if success == False:
-        message = tmp_res[1]
+        message = StoredResourceList[1]
         return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": message, "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
 
-    if not tmp_res[1]:
+    if not StoredResourceList[1]:
         print("Record not found. Use POST to insert new record")
         return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
 
-    return tmp_res[1][0]
+    return StoredResourceList[1]

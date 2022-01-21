@@ -194,26 +194,10 @@ def patch_resource(id:str, patch_resource:ResourceUpdate):
             print(patch_resource.dict())
             for key, value in patch_resource.dict().items():
                 if value:
-                    print (key, value)
-                    print (value)
-                    print(ResourceOperationalStateTypeEnum.enable.value)
-                    print(ResourceOperationalStateTypeEnum["enable"].value)
-                    print(ResourceOperationalStateTypeEnum.enable)
-                    print(ResourceOperationalStateTypeEnum["enable"])
-
-                    tar="resource."+key
-                    print(tar)
-                    print(ResourceOperationalStateTypeEnum[value.value].value)
-                    print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-
-                    target_collection.update_one({'_id': id},{"$set": {tar:ResourceOperationalStateTypeEnum[value.value].value}}, upsert=False)
-            
-           # my_entry = { "_id":newResource.name,"resource": newResource.dict() }
-            #target_collection.replace_one({'_id': id},{'_id': id,"resource": patch_resource.dict()}, upsert=True)
-            #target_collection.replace_one({'_id': id},{"DFDFD":"dfdf"}, upsert=True)
-            print("PAPA3")
+                    target="resource."+key
+                    target_collection.update_one({'_id': id},{"$set": {target:value.value}}, upsert=False)
+        
         except error as err:
-            print("PAPA3.4")
             print(err)
             print("Error Code:", err.errno)
             print("Message", err.msg)
@@ -226,27 +210,4 @@ def patch_resource(id:str, patch_resource:ResourceUpdate):
     ret_list.append(return_code)
     ret_list.append(error_msg)
     return ret_list
-    return
-    print("PAPA1")
-    if success is True:
-        try:
-            print("PAPA2")
-            print(patch_resource.dict())
-           # my_entry = { "_id":newResource.name,"resource": newResource.dict() }
-            target_collection.replace_one({'_id': id},{'_id': id,"resource": patch_resource.dict()}, upsert=True)
-            #target_collection.replace_one({'_id': id},{"DFDFD":"dfdf"}, upsert=True)
-            print("PAPA3")
-        except error as err:
-            print("PAPA3.4")
-            print(err)
-            print("Error Code:", err.errno)
-            print("Message", err.msg)
-            success = False
-            message = "Error Code: " + str(err.errno) + " | Message: " + err.msg
-    #TODO: MAke this list a dict
-    print(success)
-    ret_list.append(success)
-    ret_list.append(message)
-    ret_list.append(return_code)
-    ret_list.append(error_msg)
-    return ret_list
+    

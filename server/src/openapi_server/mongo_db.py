@@ -30,7 +30,8 @@ def connect():
     userName="r00tusEr"
     userPwd="r00tpAss"
     port=32017
-    conn_URI="mongodb://{}:{}@127.0.0.1:{}".format(userName,userPwd,port)
+#    conn_URI="mongodb://{}:{}@127.0.0.1:{}".format(userName,userPwd,port)
+    conn_URI="mongodb://{}:{}@172.16.10.37:{}".format(userName,userPwd,port)
    
     mongo_conn = pymongo.MongoClient(conn_URI)
     try: 
@@ -133,7 +134,10 @@ def insert_resource(newResource:Resource):
     target_collection=target_db[TARGET_COLLECTION]
 
     #TODO: Check if entry already exists
-    gnodeb_exists = target_collection.count({'_id': newResource.name})
+    print(type(target_collection))
+    print(target_collection)
+    gnodeb_exists = target_collection.count_documents({'_id': newResource.name})
+    
     print (gnodeb_exists)
     #Time to write
     if  gnodeb_exists != 0:

@@ -9,6 +9,7 @@ RUN pip install --upgrade pip
 
 COPY . .
 RUN pip install mysql-connector-python
+RUN pip install pymongo
 RUN pip install --no-cache-dir .
 
 

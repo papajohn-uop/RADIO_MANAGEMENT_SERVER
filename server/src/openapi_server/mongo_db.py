@@ -88,16 +88,16 @@ def get_resource(id=None):
         #TODO: add try/catch
         if id is None:
             resourcesCursor = target_collection.find()
+            for document in resourcesCursor:
+                resources_list.append(document)
         else:
-            resourcesCursor = target_collection.find_one({"_id":id})
+            document = target_collection.find_one({"_id":id})
+            resources_list.append(document)
+
         print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-        # for document in resourcesCursor:
-        #     print(document)
-        # print(resourcesCursor)
-        # print(type(resourcesCursor))
 
     ret_list.append(success)
-    ret_list.append(resourcesCursor)
+    ret_list.append(resources_list)
     return ret_list
     
 

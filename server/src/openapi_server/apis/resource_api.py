@@ -146,18 +146,16 @@ async def list_resource(
 
     print("Retrieve stored resources from the MONGO DB")
     StoredResourceList = mongo_db.get_resource()
-    return
-
-    tmp_res=db.get_resource()
-
-    success = tmp_res[0]
     
+    #tmp_res=db.get_resource()
 
+    success = StoredResourceList[0]
+     
     if success == False:
-        message = tmp_res[1]
+        message = StoredResourceList[1]
         return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": message, "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
     
-    return tmp_res[1]
+    return StoredResourceList[1]
     ...
 
 
@@ -198,6 +196,8 @@ async def patch_resource(
                     print("ACTION field found")
                     action_included = True
             if action_included:
+                print("FFF")
+                print(StoredResourceList[1]["resource"]["resource_characteristic"])
                 for characteristic in (StoredResourceList[1]["resource"]["resource_characteristic"]):
                     if characteristic["name"] == "IP":
                         IP = characteristic["value"]["value"]
@@ -264,9 +264,7 @@ async def retrieve_resource(
     ...
     print("Retrieve stored resource from the MONGO DB")
     StoredResourceList = mongo_db.get_resource(id)
-    print(StoredResourceList[0])
-    print(StoredResourceList[1])
-    
+   
 
 
     success = StoredResourceList[0]  
@@ -279,4 +277,4 @@ async def retrieve_resource(
         print("Record not found. Use POST to insert new record")
         return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
 
-    return StoredResourceList[1]["resource"]
+    return StoredResourceList[1][0]

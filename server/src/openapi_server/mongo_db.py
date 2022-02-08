@@ -89,10 +89,10 @@ def get_resource(id=None):
         if id is None:
             resourcesCursor = target_collection.find()
             for document in resourcesCursor:
-                resources_list.append(document)
+                resources_list.append(document["resource"])
         else:
             document = target_collection.find_one({"_id":id})
-            resources_list.append(document)
+            resources_list.append(document["resource"])
 
         print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 

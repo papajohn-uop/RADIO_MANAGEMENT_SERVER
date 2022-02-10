@@ -198,8 +198,22 @@ def patch_resource(id:str, patch_resource:ResourceUpdate):
             print(patch_resource.dict())
             for key, value in patch_resource.dict().items():
                 if value:
+                    print(key,value)
                     target="resource."+key
-                    target_collection.update_one({'_id': id},{"$set": {target:value.value}}, upsert=False)
+                    print(target)
+                    #if key in ["administrative_state" ,"operational_state","resource_status","usage_state"]:
+                    if key=="administrative_state":
+                        target_collection.update_one({'_id': id},{"$set": {target:ResourceAdministrativeStateTypeEnum[patch_resource.administrative_state.value].value}}, upsert=False)
+                    elif key=="operational_state":
+                        target_collection.update_one({'_id': id},{"$set": {target:ResourceOperationalStateTypeEnum[patch_resource.operational_state.value].value}}, upsert=False)
+                    elif key=="resource_status":
+                        target_collection.update_one({'_id': id},{"$set": {target:ResourceStatusTypeEnum[patch_resource.resource_status.value].value}}, upsert=False)
+                    elif key=="usage_state":
+                        target_collection.update_one({'_id': id},{"$set": {target:ResourceUsageStateTypeEnum[patch_resource.usage_state.value].value}}, upsert=False)
+                    else:
+                       target_collection.update_one({'_id': id},{"$set": {target:value}}, upsert=False)
+        
+                 #   target_collection.update_one({'_id': id},{"$set": {target:value.value}}, upsert=False)
         
         except error as err:
             print(err)

@@ -203,8 +203,8 @@ async def patch_resource(
                     action_included = True
             if action_included:
                 print("FFF")
-                print(target_res["resource"]["resource_characteristic"])
-                for characteristic in (target_res["resource"]["resource_characteristic"]):
+                print(target_res["resource_characteristic"])
+                for characteristic in (target_res["resource_characteristic"]):
                     if characteristic["name"] == "IP":
                         IP = characteristic["value"]["value"]
                         print(IP)

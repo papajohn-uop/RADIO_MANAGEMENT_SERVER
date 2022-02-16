@@ -220,9 +220,20 @@ async def patch_resource(
         try:
             x = requests.patch("http://" + IP +"/resource/1", json=resource.dict(), timeout=2)
             print(x.status_code)
+            print(x)
             print("PATCH request complete")
+            
+            if x.status_code==200:
+                print("-->1")
+                return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Patch send succesfully to Radio", "status":"OK", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+            else:
+                print("-->2")
+                return JSONResponse(status_code=405, content={"code": "405", "reason":"", "message": "Patch send to Radio FAILED", "status":"FAIL", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+
+            return x
         except requests.exceptions.RequestException as e:
-            return JSONResponse(status_code=500, content={"code": "500", "reason":"Internal Server Error", "message": "Connection Timeout", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+            print(repr(e))
+            return JSONResponse(status_code=504, content={"code": "504", "reason":"Bad Gateway", "message": "Connection Timeout", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
     else:
         patch_result=mongo_db.patch_resource(id,resource)
 

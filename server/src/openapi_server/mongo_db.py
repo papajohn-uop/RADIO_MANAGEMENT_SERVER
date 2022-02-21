@@ -92,7 +92,8 @@ def get_resource(id=None):
                 resources_list.append(document["resource"])
         else:
             document = target_collection.find_one({"_id":id})
-            resources_list.append(document["resource"])
+            if document:
+                resources_list.append(document["resource"])
 
         print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 

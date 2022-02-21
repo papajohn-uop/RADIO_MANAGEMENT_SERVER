@@ -186,7 +186,7 @@ async def patch_resource(
     StoredResourceList = mongo_db.get_resource(id)
     #TODO: Check if not found
     print(StoredResourceList)
-    target_res=StoredResourceList[1][0]
+    target_res=StoredResourceList[1]
     if not target_res:
         print("PATCH COMMAND. Record not found. Use POST to insert new record")
         return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})

@@ -185,7 +185,6 @@ async def patch_resource(
     print("Retrieve stored resource from the MONGO DB")
     StoredResourceList = mongo_db.get_resource(id)
     #TODO: Check if not found
-    print(StoredResourceList)
     target_res=StoredResourceList[1][0]
     if not target_res:
         print("PATCH COMMAND. Record not found. Use POST to insert new record")
@@ -195,33 +194,14 @@ async def patch_resource(
     print("Check if action included")
     IP =""
     action_included = False
-    if "resource_characteristic" in resource.dict():
-        if resource.dict()["resource_characteristic"]:
-            for characteristic in resource.dict()["resource_characteristic"]:
-                if characteristic["name"] == "action":
-                    print("ACTION field found")
-                    action_included = True
-            if action_included:
-                print("FFF")
-                print(target_res)
-                print(target_res["resource_characteristic"])
-                for characteristic in (target_res["resource_characteristic"]):
-                    if characteristic["name"] == "IP":
-                        IP = characteristic["value"]["value"]
-                        print(IP)
     
     #check if activation_feature is present
     if "activation_feature" in resource.dict():
-        print("ACTIVATION_FEATURE_FOUND")
         if resource.dict()["activation_feature"]:
             for characteristic in resource.dict()["activation_feature"][0]["feature_characteristic"]:
                 if characteristic["name"] == "action":
-                    print("ACTION field found")
                     action_included = True
             if action_included:
-                print("FFF")
-                print(target_res)
-                print(target_res["resource_characteristic"])
                 for characteristic in (target_res["resource_characteristic"]):
                     if characteristic["name"] == "IP":
                         IP = characteristic["value"]["value"]
@@ -238,15 +218,13 @@ async def patch_resource(
         
         try:
             x = requests.patch("http://" + IP +"/resource/1", json=resource.dict(), timeout=2)
-            print(x.status_code)
-            print(x)
+            # print(x.status_code)
+            # print(x)
             print("PATCH request complete")
             
             if x.status_code==200:
-                print("-->1")
                 return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Patch send succesfully to Radio", "status":"OK", "reference_error":"", "base_type":"","schema_location":"", "type":""})
             else:
-                print("-->2")
                 return JSONResponse(status_code=405, content={"code": "405", "reason":"", "message": "Patch send to Radio FAILED", "status":"FAIL", "reference_error":"", "base_type":"","schema_location":"", "type":""})
 
             return x
@@ -258,9 +236,7 @@ async def patch_resource(
 
 
     StoredResourceList = mongo_db.get_resource(id)
-    print(StoredResourceList[0])
-    print(StoredResourceList[1])
-    
+   
     target_res=StoredResourceList[1][0]
 
     success = StoredResourceList[0]  

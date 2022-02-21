@@ -186,7 +186,7 @@ async def patch_resource(
     StoredResourceList = mongo_db.get_resource(id)
     #TODO: Check if not found
     print(StoredResourceList)
-    target_res=StoredResourceList[1]
+    target_res=StoredResourceList[1][0]
     if not target_res:
         print("PATCH COMMAND. Record not found. Use POST to insert new record")
         return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
@@ -203,11 +203,30 @@ async def patch_resource(
                     action_included = True
             if action_included:
                 print("FFF")
+                print(target_res)
                 print(target_res["resource_characteristic"])
                 for characteristic in (target_res["resource_characteristic"]):
                     if characteristic["name"] == "IP":
                         IP = characteristic["value"]["value"]
                         print(IP)
+    
+    #check if activation_feature is present
+    if "activation_feature" in resource.dict():
+        print("ACTIVATION_FEATURE_FOUND")
+        if resource.dict()["activation_feature"]:
+            for characteristic in resource.dict()["activation_feature"][0]["feature_characteristic"]:
+                if characteristic["name"] == "action":
+                    print("ACTION field found")
+                    action_included = True
+            if action_included:
+                print("FFF")
+                print(target_res)
+                print(target_res["resource_characteristic"])
+                for characteristic in (target_res["resource_characteristic"]):
+                    if characteristic["name"] == "IP":
+                        IP = characteristic["value"]["value"]
+                        print(IP)
+
 
     patch_result=None    
     if action_included:

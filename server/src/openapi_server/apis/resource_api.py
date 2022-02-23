@@ -217,7 +217,7 @@ async def patch_resource(
         print("Perform PATCH ACTION request")
         
         try:
-            x = requests.patch("http://" + IP +"/resource/1", json=resource.dict(), timeout=2)
+            x = requests.patch("http://" + IP +"/resource/1", json=resource.dict(), timeout=10)
             # print(x.status_code)
             # print(x)
             print("PATCH request complete")

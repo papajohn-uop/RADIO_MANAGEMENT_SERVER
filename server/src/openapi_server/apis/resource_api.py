@@ -40,6 +40,7 @@ from openapi_server.models.resource_operational_state_type import ResourceOperat
 from openapi_server.models.resource_status_type import ResourceStatusTypeEnum
 from openapi_server.models.resource_usage_state_type import ResourceUsageStateTypeEnum
 
+from openapi_server.models.characteristic import Characteristic
 
 @router.post(
     "/resource",
@@ -221,18 +222,29 @@ async def patch_resource(
             # print(x.status_code)
             # print(x)
             print("PATCH request complete")
+            from datetime import datetime
             
-            if x.status_code==200:
-                return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Patch send succesfully to Radio", "status":"OK", "reference_error":"", "base_type":"","schema_location":"", "type":""})
-            else:
-                return JSONResponse(status_code=405, content={"code": "405", "reason":"", "message": "Patch send to Radio FAILED", "status":"FAIL", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+            now = datetime.now() 
+            current_time = now.strftime("%H:%M:%S")
+            print(current_time)
+            #add timestamp
+            print(resource.dict()["activation_feature"][0]["feature_characteristic"][0]["value"])
+            ft_timestamp=Characteristic(name="timestamp",value={"value":current_time})
+            resource.activation_feature[0].feature_characteristic.append(ft_timestamp)
+            # print(ft_timestamp)
+            # print(resource.activation_feature[0].feature_characteristic)
 
-            return x
+            # if x.status_code==200:
+            #     return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Patch send succesfully to Radio", "status":"OK", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+            # else:
+            #     return JSONResponse(status_code=405, content={"code": "405", "reason":"", "message": "Patch send to Radio FAILED", "status":"FAIL", "reference_error":"", "base_type":"","schema_location":"", "type":""})
+
+            # return x
         except requests.exceptions.RequestException as e:
             print(repr(e))
             return JSONResponse(status_code=504, content={"code": "504", "reason":"Bad Gateway", "message": "Connection Timeout", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
-    else:
-        patch_result=mongo_db.patch_resource(id,resource)
+   # else:
+    patch_result=mongo_db.patch_resource(id,resource)
 
 
     StoredResourceList = mongo_db.get_resource(id)

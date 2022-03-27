@@ -33,6 +33,8 @@ from openapi_server import mongo_db
 from fastapi import BackgroundTasks
 from fastapi.responses import JSONResponse
 
+from . import ws
+
 router = APIRouter()
 
 from openapi_server.models.resource_administrative_state_type import ResourceAdministrativeStateTypeEnum
@@ -41,6 +43,9 @@ from openapi_server.models.resource_status_type import ResourceStatusTypeEnum
 from openapi_server.models.resource_usage_state_type import ResourceUsageStateTypeEnum
 
 from openapi_server.models.characteristic import Characteristic
+
+from datetime import datetime
+            
 
 @router.post(
     "/resource",
@@ -202,14 +207,38 @@ async def patch_resource(
             for characteristic in resource.dict()["activation_feature"][0]["feature_characteristic"]:
                 if characteristic["name"] == "action":
                     action_included = True
+                if characteristic["name"] == "soft_action":
+                    print("Lets do something with ws")
+                    soft_action_included = True
+
             if action_included:
                 for characteristic in (target_res["resource_characteristic"]):
                     if characteristic["name"] == "IP":
                         IP = characteristic["value"]["value"]
                         print(IP)
-
+            if soft_action_included:
+                for characteristic in (target_res["resource_characteristic"]):
+                    if characteristic["name"] == "IP":
+                        IP = characteristic["value"]["value"]
+                        print(IP)
+                    if characteristic["name"] == "gtp_iface":
+                        GTP_ADDR = characteristic["value"]["value"]
+                        print(GTP_ADDR)
 
     patch_result=None    
+
+    if soft_action_included:
+        now = datetime.now() 
+        current_time = now.strftime("%H:%M:%S")
+        ft_timestamp=Characteristic(name="timestamp",value={"value":current_time})
+        resource.activation_feature[0].feature_characteristic.append(ft_timestamp)
+        #IP has the fastapi server of the agent as well.
+        #Just get the IP part only
+        ws_IP=IP.split(":")[0]
+        resp=ws.ws_command(ws_IP, GTP_ADDR, resource)
+        ft_resp=Characteristic(name="ws_response",value={"value":resp})
+        resource.activation_feature[0].feature_characteristic.append(ft_resp)
+        
     if action_included:
         ...
         #send patch to agent
@@ -222,13 +251,12 @@ async def patch_resource(
             # print(x.status_code)
             # print(x)
             print("PATCH request complete")
-            from datetime import datetime
             
             now = datetime.now() 
             current_time = now.strftime("%H:%M:%S")
             print(current_time)
             #add timestamp
-            print(resource.dict()["activation_feature"][0]["feature_characteristic"][0]["value"])
+           # print(resource.dict()["activation_feature"][0]["feature_characteristic"][0]["value"])
             ft_timestamp=Characteristic(name="timestamp",value={"value":current_time})
             resource.activation_feature[0].feature_characteristic.append(ft_timestamp)
             # print(ft_timestamp)

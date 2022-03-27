@@ -135,11 +135,11 @@ def insert_resource(newResource:Resource):
     target_collection=target_db[TARGET_COLLECTION]
 
     #TODO: Check if entry already exists
-    print(type(target_collection))
-    print(target_collection)
+    # print(type(target_collection))
+    # print(target_collection)
     gnodeb_exists = target_collection.count_documents({'_id': newResource.name})
     
-    print (gnodeb_exists)
+    # print (gnodeb_exists)
     #Time to write
     if  gnodeb_exists != 0:
         print("OOOOPs")
@@ -194,9 +194,9 @@ def patch_resource(id:str, patch_resource:ResourceUpdate):
     target_collection=target_db[TARGET_COLLECTION]
     if success is True:
         try:
-            print("PAPA2")
+            # print("PAPA2")
             #only allow certain fields to be patched
-            print(patch_resource.dict())
+            # print(patch_resource.dict())
             for key, value in patch_resource.dict().items():
                 if value:
                     print(key,value)

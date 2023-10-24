@@ -346,22 +346,17 @@ async def retrieve_resource(
         print("Record not found. Use POST to insert new record")
         return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
     target_res=StoredResourceList[1][0]
-    print("-------------------------")
-    print("-------------------------")
-    print("-------------------------")
-    print(target_res["resource_characteristic"])
-
 
     status_resource_char=Characteristic(id="gnb_status",name="gnb_status",type="list",value={"value":None})  
     status_resource_char.id="string"
     status_resource_char.value_type="list"
 
-    online_status,agent_status,gnb_service_status=get_gnb_status(target_res)
+    online_status,agent_online_status,gnb_service_status=get_gnb_status(target_res)
     gnb_status=dict()
     gnb_status["gnb_list"]=dict()
     gnb_status["gnb_list"][id]=dict()
     gnb_status["gnb_list"][id]["online_status"]=online_status
-    gnb_status["gnb_list"][id]["agent_status"]=agent_status
+    gnb_status["gnb_list"][id]["agent_online_status"]=agent_online_status
     gnb_status["gnb_list"][id]["gnb_service_status"]=gnb_service_status
 
 
@@ -376,22 +371,21 @@ def get_gnb_status(target_res):
     gnb_service_status="Unknown"
     #get ip
     ip=None
+    ip_port=None
     for res_char in target_res["resource_characteristic"]:
         if res_char["name"]=="IP":
             ip_port=res_char["value"]["value"]
             ip=ip_port.split(":")[0] #just get the ip part
     online_status=getSshConnectionStatus(ip)
     if online_status is False:
-        online_status="offline"
         return
     
-    online_status="online"
-    
-    
-    
- 
+    agent_online_status=getAgentStatus(ip_port)
 
-    return online_status,agent_status,gnb_service_status
+
+    return online_status,agent_online_status,gnb_service_status
+
+
 import socket
 
 def getSshConnectionStatus(IP):
@@ -402,3 +396,15 @@ def getSshConnectionStatus(IP):
     except:
         pass
     return False     
+
+def getAgentStatus(IP):
+    #do a simple get
+    try:
+        x = requests.get("http://" + IP +"/docs")
+        print(x.status_code)
+        if x.status_code==200:
+            return True
+        else:
+            return False
+    except requests.exceptions.RequestException as e:
+        return False

@@ -351,7 +351,7 @@ async def retrieve_resource(
     status_resource_char.id="string"
     status_resource_char.value_type="list"
 
-    online_status,agent_online_status,gnb_service_status=get_gnb_status(target_res)
+    online_status,agent_online_status,gnb_service_status=get_gnb_status(target_res,id)
     gnb_status=dict()
     gnb_status["gnb_list"]=dict()
     gnb_status["gnb_list"][id]=dict()
@@ -364,7 +364,7 @@ async def retrieve_resource(
     target_res["resource_characteristic"].append(status_resource_char)
     return StoredResourceList[1][0]
 
-def get_gnb_status(target_res):
+def get_gnb_status(target_res,id):
 
     online_status="Unknown"
     agent_status="Unknown"
@@ -382,6 +382,8 @@ def get_gnb_status(target_res):
     
     agent_online_status=getAgentStatus(ip_port)
 
+
+    gnb_service_status=get_gnbServiceStatus(ip_port)
 
     return online_status,agent_online_status,gnb_service_status
 
@@ -401,6 +403,34 @@ def getAgentStatus(IP):
     #do a simple get
     try:
         x = requests.get("http://" + IP +"/docs")
+        print(x.status_code)
+        if x.status_code==200:
+            return True
+        else:
+            return False
+    except requests.exceptions.RequestException as e:
+        return False
+
+def get_gnbServiceStatus(IP):
+    #do a simple get
+    print("============>1")
+    try:
+        x = requests.patch("http://" + IP +"/resource/a/",data='{\
+  "activation_feature": [\
+    {\
+      "name": "gNodeB_service",\
+      "feature_characteristic": [\
+        {\
+          "name": "action",\
+          "value": {\
+            "value": "status"\
+          }\
+        }\
+      ]\
+    }\
+  ]\
+}'
+)
         print(x.status_code)
         if x.status_code==200:
             return True

@@ -62,7 +62,8 @@ def checkConnection():
         return None
     print(conn[TARGET_DB].list_collection_names())
     if TARGET_COLLECTION in conn[TARGET_DB].list_collection_names():
-        print("COLLECTION in DB is OK!")
+        ...
+        # print("COLLECTION in DB is OK!")
     else:
         print("COLLECTION in DB is Missing!")
         success = False
@@ -125,7 +126,8 @@ def insert_resource(newResource:Resource):
         message = "Error DBM."
     print(conn[TARGET_DB].list_collection_names())
     if TARGET_COLLECTION in conn[TARGET_DB].list_collection_names():
-        print("COLLECTION in DB is OK!")
+        ...
+        # print("COLLECTION in DB is OK!")
     else:
         print("COLLECTION in DB is Missing!")
         success = False
@@ -184,7 +186,8 @@ def patch_resource(id:str, patch_resource:ResourceUpdate):
         message = "Error DBM."
     print(conn[TARGET_DB].list_collection_names())
     if TARGET_COLLECTION in conn[TARGET_DB].list_collection_names():
-        print("COLLECTION in DB is OK!")
+        ...
+        # print("COLLECTION in DB is OK!")
     else:
         print("COLLECTION in DB is Missing!")
         success = False
@@ -199,9 +202,9 @@ def patch_resource(id:str, patch_resource:ResourceUpdate):
             # print(patch_resource.dict())
             for key, value in patch_resource.dict().items():
                 if value:
-                    print(key,value)
+                    # print(key,value)
                     target="resource."+key
-                    print(target)
+                    # print(target)
                     #if key in ["administrative_state" ,"operational_state","resource_status","usage_state"]:
                     if key=="administrative_state":
                         target_collection.update_one({'_id': id},{"$set": {target:ResourceAdministrativeStateTypeEnum[patch_resource.administrative_state.value].value}}, upsert=False)

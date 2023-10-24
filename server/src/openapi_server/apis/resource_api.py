@@ -45,7 +45,9 @@ from openapi_server.models.resource_usage_state_type import ResourceUsageStateTy
 from openapi_server.models.characteristic import Characteristic
 
 from datetime import datetime
-            
+
+
+
 
 @router.post(
     "/resource",
@@ -74,11 +76,23 @@ async def create_resource(
     newResource.description=resource.description
     newResource.resource_version=resource.resource_version
     #TODO: if the key is erroneous in agetn_Cfg (i.e. state=unlked) there is an excpetion. Must fix it
-    newResource.administrative_state=ResourceAdministrativeStateTypeEnum[resource.administrative_state.value].value#resource.administrative_state
-    newResource.operational_state=ResourceOperationalStateTypeEnum[resource.operational_state.value].value#resource.administrative_state
-    newResource.resource_status=ResourceStatusTypeEnum[resource.resource_status.value].value#resource.administrative_state
-    newResource.usage_state=ResourceUsageStateTypeEnum[resource.usage_state.value].value#resource.administrative_state
-    
+    if (resource.administrative_state):
+        newResource.administrative_state=ResourceAdministrativeStateTypeEnum[resource.administrative_state.value].value
+    else:
+        newResource.administrative_state=ResourceAdministrativeStateTypeEnum.shutdown.value
+    if (resource.operational_state):
+        newResource.operational_state=ResourceOperationalStateTypeEnum[resource.operational_state.value].value#resource.administrative_state
+    else:
+        newResource.operational_state=ResourceOperationalStateTypeEnum.disable.value
+    if (newResource.resource_status):
+        newResource.resource_status=ResourceStatusTypeEnum[resource.resource_status.value].value#resource.administrative_state
+    else:
+        newResource.resource_status=ResourceStatusTypeEnum.unknown.value
+    if (newResource.usage_state):
+        newResource.usage_state=ResourceUsageStateTypeEnum[resource.usage_state.value].value#resource.administrative_state
+    else:
+        newResource.usage_state=ResourceUsageStateTypeEnum.idle.value
+
     newResource.resource_characteristic=resource.resource_characteristic
     for characteristic in newResource.resource_characteristic:
         characteristic.id=str(uuid.uuid1())
@@ -186,7 +200,7 @@ async def patch_resource(
 ) -> Resource:
     """This operation updates partially a Resource entity."""
     ...
-    print("This operation updates partially a Resource entity and forwards PATCH actions")
+    print("Tshis operation updates partially 111a Resource entity and forwards PATCH actions")
 
     print("Retrieve stored resource from the MONGO DB")
     StoredResourceList = mongo_db.get_resource(id)
@@ -200,8 +214,11 @@ async def patch_resource(
     print("Check if action included")
     IP =""
     action_included = False
+    soft_action_included=False
     
     #check if activation_feature is present
+    #Init variable to avoid exception
+    soft_action_included=None
     if "activation_feature" in resource.dict():
         if resource.dict()["activation_feature"]:
             for characteristic in resource.dict()["activation_feature"][0]["feature_characteristic"]:
@@ -248,8 +265,8 @@ async def patch_resource(
         
         try:
             x = requests.patch("http://" + IP +"/resource/1", json=resource.dict(), timeout=10)
-            # print(x.status_code)
-            # print(x)
+            print(x.status_code)
+            print(x.text)
             print("PATCH request complete")
             
             now = datetime.now() 
@@ -257,7 +274,7 @@ async def patch_resource(
             print(current_time)
             #add timestamp
            # print(resource.dict()["activation_feature"][0]["feature_characteristic"][0]["value"])
-            ft_timestamp=Characteristic(name="timestamp",value={"value":current_time})
+            ft_timestamp=Characteristic(name="patch_result",value={"timestamp":current_time,"html_code":x.status_code,"html_text":x.text})
             resource.activation_feature[0].feature_characteristic.append(ft_timestamp)
             # print(ft_timestamp)
             # print(resource.activation_feature[0].feature_characteristic)
@@ -288,7 +305,7 @@ async def patch_resource(
     if not StoredResourceList[1]:
         print("Record not found. Use POST to insert new record")
         return JSONResponse(status_code=200, content={"code": "200", "reason":"", "message": "Record not found. Use POST to insert new record", "status":"", "reference_error":"", "base_type":"","schema_location":"", "type":""})
-
+    print("=--------------------->2")
     return target_res
 
 

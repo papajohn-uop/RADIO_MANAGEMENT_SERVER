@@ -32,7 +32,7 @@ class Feature(BaseModel):
     is_bundle: Optional[bool] = None
     is_enabled: Optional[bool] = None
     name: str
-    constraint: Optional[List[ConstraintRef]] = None
+    #constraint: Optional[List[ConstraintRef]] = None
     feature_characteristic: List[Characteristic]
     feature_relationship: Optional[List[FeatureRelationship]] = None
 
